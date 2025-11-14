@@ -1,184 +1,221 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { AppContext } from '../context/AppContext';
-import { assets } from '../assets/assets';
-import RelatedDoctors from '../components/RelatedDoctors';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Calendar, Star, CheckCircle2, Clock, MapPin, Award } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import DoctorCard from "../components/booking/DoctorCard";
+import TimeSlotPicker from "../components/booking/TimeSlotPicker";
+import BookingForm from "../components/booking/BookingForm";
+import BookingConfirmation from "../components/booking/BookingConfirmation";
 
-const Appointment = () => {
+// Mock data
+const mockDoctors = [
+  {
+    id: 1,
+    name: "Dr. Sarah Chen",
+    experience: "15 years",
+    rating: 4.9,
+    reviews: 247,
+    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop",
+    location: "Manhattan Medical Center",
+    availability: ["9:00 AM", "10:30 AM", "2:00 PM", "3:30 PM", "4:30 PM"],
+    about: "Specialized in preventive cardiology and heart disease management.",
+    languages: ["English", "Mandarin"]
+  },
+  {
+    id: 2,
+    name: "Dr. Michael Roberts",
+    experience: "12 years",
+    rating: 4.8,
+    reviews: 189,
+    image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop",
+    location: "Skin Care Clinic",
+    availability: ["10:00 AM", "11:30 AM", "1:00 PM", "3:00 PM"],
+    about: "Expert in cosmetic and medical dermatology procedures.",
+    languages: ["English", "Spanish"]
+  },
+  {
+    id: 3,
+    name: "Dr. Priya Sharma",
+    experience: "10 years",
+    rating: 5.0,
+    reviews: 312,
+    image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop",
+    location: "Children's Health Center",
+    availability: ["9:30 AM", "11:00 AM", "2:30 PM", "4:00 PM", "5:00 PM"],
+    about: "Passionate about child healthcare and developmental pediatrics.",
+    languages: ["English", "Hindi"]
+  },
+  {
+    id: 4,
+    name: "Dr. James Wilson",
+    experience: "18 years",
+    rating: 4.9,
+    reviews: 278,
+    image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop",
+    location: "Sports Medicine Institute",
+    availability: ["8:30 AM", "10:00 AM", "1:30 PM", "3:00 PM"],
+    about: "Specializing in sports injuries and joint replacement surgery.",
+    languages: ["English", "French"]
+  },
+  {
+    id: 5,
+    name: "Dr. Emily Park",
+    experience: "14 years",
+    rating: 4.8,
+    reviews: 203,
+    image: "https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=400&h=400&fit=crop",
+    location: "Brain & Spine Center",
+    availability: ["9:00 AM", "11:30 AM", "2:00 PM", "4:30 PM"],
+    about: "Expert in neurological disorders and headache management.",
+    languages: ["English", "Korean"]
+  },
+  {
+    id: 6,
+    name: "Dr. Ahmed Hassan",
+    experience: "20 years",
+    rating: 4.9,
+    reviews: 421,
+    image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&h=400&fit=crop",
+    location: "Family Health Clinic",
+    availability: ["8:00 AM", "10:30 AM", "1:00 PM", "3:30 PM", "5:00 PM"],
+    about: "Comprehensive primary care for patients of all ages.",
+    languages: ["English", "Arabic"]
+  }
+];
 
-  const navigate = useNavigate()
-  const { docId } = useParams();
-  const { doctors, currencySymbol , backendUrl , token , getDoctorsData } = useContext(AppContext);
-  const daysOfWeek = ['SUN','MON','TUE','WED','THU','FRI','SAT']
+const specialties = ["Doctors"];
 
-  const [docInfo, setDocInfo] = useState(null)
-  const [docSlots, setDocSlots] = useState([])
-  const [slotIdx, setSlotIdx] = useState(0)
-  const [slotTime, setSlotTime] = useState('')
+export default function DoctorBooking() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [bookingComplete, setBookingComplete] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState(null);
 
+  const filteredDoctors = mockDoctors.filter(doctor => {
+    const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSpecialty = selectedSpecialty === "All Specialties" || doctor.specialty === selectedSpecialty;
+    return matchesSearch && matchesSpecialty;
+  });
 
-  const fetchDocInfo = async () => {
-    const docInfo1 = doctors.find(doc => doc._id === docId);
-    setDocInfo(docInfo1);
+  const handleBookingSubmit = (patientData) => {
+    setBookingDetails({
+      ...patientData,
+      doctor: selectedDoctor,
+      timeSlot: selectedTimeSlot
+    });
+    setBookingComplete(true);
+  };
+
+  const resetBooking = () => {
+    setSelectedDoctor(null);
+    setSelectedTimeSlot(null);
+    setBookingComplete(false);
+    setBookingDetails(null);
+  };
+
+  if (bookingComplete) {
+    return <BookingConfirmation bookingDetails={bookingDetails} onNewBooking={resetBooking} />;
   }
 
-  const getAvailableSlots =async()=>{
-       setDocSlots([])
-       
-       // getting current date
-
-       let today = new Date()
- for(let i=0;i<7;i++){
-  // getting date with idx
-  let currentDate = new Date(today)
-  currentDate.setDate(today.getDate()+i)
-
-  // setting end time of the date with index 
-  let endTime = new Date()
-  endTime.setDate(today.getDate()+i)
-  endTime.setHours(21,0,0,0)
-
-  // setting hours
-
-  if(today.getDate()==currentDate.getDate()){
-    currentDate.setHours(currentDate.getHours()>10 ? currentDate.getHours()+1 : 10)
-   currentDate.setMinutes(currentDate.getMinutes()>30 ? 30 : 0)
-  } 
-  else{
-    currentDate.setHours(10)
-    currentDate.setMinutes(0)
-  }
-
-  let timeSlots = []
-
-  while(currentDate < endTime){
-     let formattedTime = currentDate.toLocaleTimeString([],{hour : '2-digit',minute:'2-digit'})
-
-     let day = currentDate.getDate()
-     let month = currentDate.getMonth()+1
-     let year = currentDate.getFullYear()
-
-     const slotDate = day+"_"+month+"_"+year
-     const slotTime = formattedTime
-
-     const isSlotAvailable = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false : true
-
-     if(isSlotAvailable){
-    timeSlots.push({
-    datetime: new Date(currentDate),
-    time: formattedTime
-   })
-     }
-
-
-   // Add slots to array
-
-    
-
-   // Increment time by 30min
-
-   currentDate.setMinutes(currentDate.getMinutes()+30)
-  }
-
-  setDocSlots(prev => ([...prev,timeSlots]))
- }
-
- }
-
- const bookAppointment = async()=>{
-  if(!token){
-    toast.warn('Login to book appointment')
-    return navigate('/login')
-  }
-
-  try {
-    const date = docSlots[slotIdx][0].datetime
-    
-    let day = date.getDate()
-    let month = date.getMonth()+1
-    let year = date.getFullYear()
-
-    const slotDate = day +"_"+month+"_"+year
-    
-    const {data} = await axios.post(backendUrl+'/api/user/book-appointment',{docId,slotDate,slotTime},{headers:{token}})
-    if(data.success){
-      toast.success(data.message)
-      getDoctorsData()
-      navigate('/my-appointments')
-    }
-    else{
-      toast.error(data.message)
-    }
-  } catch (error) {
-    console.log(error)
-    toast.error(error.message)
-  }
- }
-
-
-
-  useEffect(() => {
-    fetchDocInfo();
-  }, [doctors, docId])
-
-useEffect(() => {
-  getAvailableSlots()
-}, [docInfo])
-
-useEffect(() => {
-  console.log(docSlots)
-},[docSlots])
-
-
-
-  return docInfo && (
-    <div>
-      <div className='flex flex-col sm:flex-row gap-4'>
-        <div>
-          <img className='bg-[#5f6fff] w-full sm:max-w-72 rounded-lg' src={docInfo.image} />
-        </div>
-
-        <div className='flex-1 border-gray-500 border-1 rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0'>
-          <p className='flex gitems-center gap-2 text-2xl font-medium text-gray-900 '>{docInfo.name} <img className='w-5' src={assets.verified_icon} /></p>
-          <div className='flex items-center gap-2 text-sm mt-1 text-gray-600'>
-            <p>{docInfo.degree} - {docInfo.speciality}</p>
-            <button className='py-0.5 px-2 border text-xs rounded-full'>{docInfo.experience}</button>
-          </div>
-
-          <div >
-            <p className='flex items-center gap-1 text-sm font-medium text-gray-900 mt-3'>About <img src={assets.info_icon} /></p>
-            <p className='text-sm text-gray-500 max-w-[700px] mt-1'>{docInfo.about}</p>
-          </div>
-          <p className='text-gray-500 font-medium mt-4'>Appointment fee :<span className='text-gray-600'>
-            {currencySymbol}{docInfo.fee}</span></p>
+  return (
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-cyan-50 to-blue-50">
+      {/* Hero Section */}
+      <div className="bg-linear-to-r from-cyan-600 to-blue-600 text-white py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
+              Book Your Appointment
+            </h1>
+            <p className="text-xl text-cyan-50 max-w-2xl mx-auto">
+              Connect with world-class healthcare professionals
+            </p>
+          </motion.div>
         </div>
       </div>
 
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <AnimatePresence mode="wait">
+          {!selectedDoctor ? (
+            <motion.div
+              key="doctor-list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Search and Filter */}
+              <div className="mb-12">
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Input
+                      placeholder="Search doctors by name or specialty..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-12 h-14 text-lg border-gray-200 focus:border-cyan-500 rounded-xl shadow-sm"
+                    />
+                  </div>
+                </div>
 
-      <div className='sm:ml-72 sm:pl-4 mt-4 font-medium text-gray-700'>
-         <p>Booking Slots</p>
-         <div className='flex gap-3 items-center w-full oveflow-x-scroll mt-4'>
-          {docSlots.length && docSlots.map((item,idx)=>(
-             <div onClick={()=>{setSlotIdx(idx)}} key={idx} className={`text-center py-6 min-w-16 rounded-full cursor-pointer ${slotIdx === idx ? 'bg-[#5f6fff] text-white':'border border-gray-200'}`}>
-              <p>{item[0] && daysOfWeek[item[0].datetime.getDay()]}</p>
-              <p>{item[0] && item[0].datetime.getDate()}</p>
+                <div className="flex flex-wrap gap-3">
+                  {specialties.map((specialty) => (
+                    <Button
+                      key={specialty}
+                      variant={selectedSpecialty === specialty ? "default" : "outline"}
+                      onClick={() => setSelectedSpecialty(specialty)}
+                      className={`rounded-full px-6 ${
+                        selectedSpecialty === specialty
+                          ? "bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700"
+                          : "hover:bg-cyan-50 hover:text-cyan-700 border-gray-200"
+                      }`}
+                    >
+                      {specialty}
+                    </Button>
+                  ))}
+                </div>
               </div>
-          ))}
-         </div>
-         <div  className='flex items-center gap-3 w-full overflow-x-scroll mt-4'>
-          {docSlots.length && docSlots[slotIdx].map((item,idx)=>(
-          <p onClick={()=>{setSlotTime(item.time)}} key={idx} className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer ${item.time === slotTime ? 'bg-[#5f6fff] text-white':'text-gray-500 border border-gray-200'}`}>
-             {item.time.toLowerCase()}
-          </p>
-          ))}
-         </div>
-         <button onClick={()=>bookAppointment()} className='bg-[#5f6fff] text-sm text-white font-light px-14 py-3 rounded full my-6 rounded-2xl'>BOOK AN APPOINTMENT</button>
-      </div>
-     <RelatedDoctors docId={docId} speciality={docInfo.speciality}/>
-    </div>
-  )
-}
 
-export default Appointment
+              {/* Doctor Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredDoctors.map((doctor) => (
+                  <DoctorCard
+                    key={doctor.id}
+                    doctor={doctor}
+                    onSelect={setSelectedDoctor}
+                  />
+                ))}
+              </div>
+
+              {filteredDoctors.length === 0 && (
+                <div className="text-center py-20">
+                  <p className="text-gray-500 text-lg">No doctors found matching your criteria</p>
+                </div>
+              )}
+            </motion.div>
+          ) : !selectedTimeSlot ? (
+            <TimeSlotPicker
+              doctor={selectedDoctor}
+              onSelectTimeSlot={setSelectedTimeSlot}
+              onBack={() => setSelectedDoctor(null)}
+            />
+          ) : (
+            <BookingForm
+              doctor={selectedDoctor}
+              timeSlot={selectedTimeSlot}
+              onSubmit={handleBookingSubmit}
+              onBack={() => setSelectedTimeSlot(null)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

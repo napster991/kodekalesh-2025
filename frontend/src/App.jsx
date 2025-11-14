@@ -12,6 +12,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { ToastContainer,toast } from 'react-toastify'
 import Assessment from './pages/Assessment'
+import CommunityPage from './pages/community'
 
 const navStyle = {
   display: 'flex',
@@ -35,7 +36,7 @@ function App() {
       <Navbar/>
       <ToastContainer/>
       <nav style={navStyle}>
-        <Link to="/" style={linkStyle}>Home</Link>
+        {/* <Link to="/" style={linkStyle}>Home</Link> */}
         {/* <Link to="/assessment" style={linkStyle}>Assessment</Link> */}
       </nav>
       <Routes>
@@ -44,10 +45,13 @@ function App() {
         <Route path='/doctors/:speciality' element={<Doctors/>}/>
         <Route path='/login' element={<Login/>}/>
         <Route path='/about' element={<About/>}/>
+        <Route path='/appointment' element={<Appointment/>}/>
+        <Route path='/community' element={<CommunityPage/>}/>
         <Route path='/contact' element={<Contact/>}/>
+        <Route path='/MyAppointments' element={<MyAppointments/>}/>
         <Route path='/my-profile' element={<MyProfile/>}/>
-        <Route path='/my-appointments' element={<MyAppointments/>}/>
-        <Route path='/appointment/:docId' element={<Appointment/>}/>
+        {/* <Route path='/my-appointments' element={<DoctorBooking/>}/> */}
+        {/* <Route path='/appointment/:docId' element={<Appointment/>}/> */}
         <Route path="/assessment" element={<Assessment />} />
       </Routes>
       <Footer/>

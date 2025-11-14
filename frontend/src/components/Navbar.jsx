@@ -31,13 +31,17 @@ const Navbar = () => {
                 <li className='py-1 '>About</li>
                 <hr className='border-none outline-none h-0.5 bg-[#5f6fff] w-3/5 m-auto'/>
             </NavLink>
-            <NavLink to="/contact">
-                <li className='py-1 '>Contact</li>
+            <NavLink to="/appointment">
+                <li className='py-1 '>Appointment</li>
                 <hr className='border-none outline-none h-0.5 bg-[#5f6fff] w-3/5 m-auto'/>
             </NavLink>
             
             <NavLink to="/assessment">
                 <li className='py-1'>Assessment</li>
+                <hr className='border-none outline-none h-0.5 bg-[#5f6fff] w-3/5 m-auto'/>
+            </NavLink>
+            <NavLink to="/community">
+                <li className='py-1'>Community</li>
                 <hr className='border-none outline-none h-0.5 bg-[#5f6fff] w-3/5 m-auto'/>
             </NavLink>
             

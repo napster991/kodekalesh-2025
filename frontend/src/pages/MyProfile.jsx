@@ -59,7 +59,7 @@ try {
         isEdit ? <input className='bg-gray-50 text-3xl font-medium max-w-60 mt-4' type='text' value={userData.Name} onChange={(e) => { setUserData(prev => ({ ...prev, Name: e.target.value })) }} /> :
           <p className='font-medium text-3xl text-neutral-800 mt-4'>{userData.name}</p>
       }
-      <hr className='bg-zinc-400 h-[1px] border-none' />
+      <hr className='bg-zinc-400 h-px border-none' />
       <div>
         <p className='text-neutral-500 underline mt-3'>Conatct info </p>
         <div className='grid grid-cols-[1fr_3fr] gap-y-2.5 mt-3 text-neutral-700'>
