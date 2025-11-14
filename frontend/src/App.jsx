@@ -5,13 +5,13 @@ import Doctors from './pages/Doctors'
 import Login from './pages/Login'
 import About from './pages/About'
 import Contact from './pages/Contact'
-import MyProfile from './pages/MyProfile'
 import MyAppointments from './pages/MyAppointments'
 import Appointment from './pages/Appointment'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { ToastContainer,toast } from 'react-toastify'
 import Assessment from './pages/Assessment'
+import CommunityPage from './pages/community'
 
 const navStyle = {
   display: 'flex',
@@ -45,7 +45,8 @@ function App() {
         <Route path='/login' element={<Login/>}/>
         <Route path='/about' element={<About/>}/>
         <Route path='/contact' element={<Contact/>}/>
-        <Route path='/my-profile' element={<MyProfile/>}/>
+        <Route path='/community' element={<CommunityPage/>}/>
+        <Route path='/appointment' element={<Appointment/>}/>
         <Route path='/my-appointments' element={<MyAppointments/>}/>
         <Route path='/appointment/:docId' element={<Appointment/>}/>
         <Route path="/assessment" element={<Assessment />} />
