@@ -14,7 +14,7 @@ const TopDoctors = () => {
         <p className='sm:w-1/3 text-center text-sm'>Simply browse through our extensive list of trusted Doctors</p>
         <div className='w-full grid grid-cols-5 gap-4 pt-5 gap-y-6 px-3 sm:px-0'>
             {doctors.slice(0,10).map((item,idx)=>(
-                <div onClick={()=>{navigate(`/appointment/${item._id}`);scrollTo(0,0)}} key={idx} className='border-blue-200 border rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500'>
+                <div onClick={()=>{navigate(`/appointment/${item._id}`);scrollTo(0,0)}} key={idx} className='border-blue-200 border rounded-xl overflow-hidden cursor-pointer hover:-translate-y-2.5 transition-all duration-500'>
                     <img className='bg-blue-50' src={item.image}/>
                     <div className='p-4 flex flex-col items-start gap-1 text-sm text-center'>
                     <div>
